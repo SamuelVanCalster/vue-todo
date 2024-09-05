@@ -4,25 +4,24 @@ import { nanoid } from "nanoid";
 import { Todo } from "../types";
 
 const todos = ref<Todo[]>([]);
-const newTodo = ref("");
-const error = ref("");
-
+const newTodo = ref<string>("");
+const error = ref<string>("");
 const theme = ref<"light" | "dark">("light");
-const toggleTheme = () => {
-  theme.value = theme.value === "dark" ? "light" : "dark";
-};
 
 const fetchTodos = async () => {
-  const data = await (
-    await fetch("https://dummyjson.com/todos?limit=3")
-  ).json();
-  todos.value = data.todos.map((todo: Todo) => ({
-    id: nanoid(),
-    todo: todo.todo,
-    done: false,
-  }));
+  try {
+    const data = await (
+      await fetch("https://dummyjson.com/todos?limit=3")
+    ).json();
+    todos.value = data.todos.map((todo: Todo) => ({
+      id: nanoid(),
+      todo: todo.todo,
+      done: false,
+    }));
+  } catch (error) {
+    console.log(error);
+  }
 };
-onMounted(() => fetchTodos());
 
 const addTodo = (e: Event) => {
   e.preventDefault();
@@ -37,6 +36,22 @@ const addTodo = (e: Event) => {
   newTodo.value = "";
   error.value = "";
 };
+
+const removeTodo = (id: string) => {
+  todos.value = todos.value.filter((t) => t.id !== id);
+};
+
+const toggleChecked = (id: string) => {
+  const todo = todos.value.find((t) => t.id === id);
+  if (!todo) return;
+  todo.done = !todo.done;
+};
+
+const toggleTheme = () => {
+  theme.value = theme.value === "dark" ? "light" : "dark";
+};
+
+onMounted(() => fetchTodos());
 </script>
 
 <template>
@@ -108,7 +123,7 @@ const addTodo = (e: Event) => {
             </p>
             <p v-else>{{ todo.todo }}</p>
             <div class="flex gap-2 items-center">
-              <button @click="todo.done = !todo.done">
+              <button @click="toggleChecked(todo.id)">
                 <v-icon
                   v-if="!todo.done"
                   name="io-checkmark-circle-sharp"
@@ -123,10 +138,7 @@ const addTodo = (e: Event) => {
                 />
               </button>
 
-              <button
-                class="text-red-500"
-                @click="todos.splice(todos.indexOf(todo), 1)"
-              >
+              <button class="text-red-500" @click="removeTodo(todo.id)">
                 <v-icon
                   name="bi-trash3-fill"
                   color="light-red"
