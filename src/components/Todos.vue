@@ -49,9 +49,17 @@ const toggleChecked = (id: string) => {
 
 const toggleTheme = () => {
   theme.value = theme.value === "dark" ? "light" : "dark";
+  localStorage.setItem("theme", theme.value);
 };
 
-onMounted(() => fetchTodos());
+onMounted(() => {
+  fetchTodos();
+
+  localStorage.getItem("theme") &&
+  (theme.value = localStorage.getItem("theme") as "light" | "dark")
+    ? theme.value
+    : (theme.value = "light");
+});
 </script>
 
 <template>
@@ -77,7 +85,7 @@ onMounted(() => fetchTodos());
       </button>
     </div>
     <div
-      :class="`grid rounded-lg max-w-[90%] mx-auto p-4 ${
+      :class="`grid rounded-lg max-w-[90%] mx-auto p-4 sm:max-w-[85%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[50%] 2xl:max-w-[40%] ${
         theme === 'dark' ? 'bg-[#363636]' : 'bg-gray-200'
       } `"
     >
@@ -109,9 +117,11 @@ onMounted(() => fetchTodos());
         <p v-if="error && newTodo.trim().length === 0" class="text-red-500">
           {{ error }}
         </p>
-        <ul :class="`${theme === 'dark' ? 'text-white' : 'text-black'}`">
+        <ul :class="`${theme === 'dark' ? 'text-white' : 'text-black'} mt-2`">
           <li
-            class="flex justify-between gap-3 line-clamp-2"
+            :class="`flex justify-between gap-3 line-clamp-2 border-b ${
+              theme === 'dark' ? 'border-[#242424]' : 'border-gray-50'
+            } py-[6px] first-of-type:border-y`"
             v-for="todo in todos"
             :key="todo.id"
           >
